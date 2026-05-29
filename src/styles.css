@@ -2113,8 +2113,29 @@ h3 { font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 600; }
   .navbar-name { display: none; }
   .product-grid { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
-  .gifts-meta-row { gap: 10px; }
-  .gifts-meta-item strong { font-size: 1.3rem; }
+}
+
+/* Barra de estatísticas dos presentes: 3 colunas iguais que sempre
+   cabem na largura do celular (iPhone 12 = 390px). Evita o estouro
+   horizontal causado pelos rótulos longos com letter-spacing. */
+@media (max-width: 480px) {
+  .gifts-meta-row {
+    gap: 4px;
+    padding: 12px 8px;
+    justify-content: space-between;
+  }
+  .gifts-meta-item {
+    flex: 1 1 0;
+    align-items: center;
+    text-align: center;
+    min-width: 0;
+  }
+  .gifts-meta-item strong { font-size: 1.4rem; }
+  .gifts-meta-item span {
+    font-size: 0.58rem;
+    letter-spacing: 0.02em;
+  }
+  .gifts-meta-sep { display: none; }
 }
 
 /* Reduz movimento para usuários que preferem */
