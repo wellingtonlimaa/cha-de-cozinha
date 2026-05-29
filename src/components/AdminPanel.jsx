@@ -231,21 +231,23 @@ function AdminDashboard() {
           {guests.length === 0 ? (
             <div className="empty-state"><strong>Ninguém confirmou ainda</strong></div>
           ) : (
-            <table className="admin-table">
-              <thead>
-                <tr><th>Nome</th><th>Telefone</th><th>Pessoas</th><th>Confirmado em</th></tr>
-              </thead>
-              <tbody>
-                {guests.map((g) => (
-                  <tr key={g.phone}>
-                    <td>{g.name}</td>
-                    <td>{maskPhone(g.phone)}</td>
-                    <td>{g.guests_count}</td>
-                    <td>{formatDateTime(g.confirmed_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="admin-table-scroll">
+              <table className="admin-table">
+                <thead>
+                  <tr><th>Nome</th><th>Telefone</th><th>Pessoas</th><th>Confirmado em</th></tr>
+                </thead>
+                <tbody>
+                  {guests.map((g) => (
+                    <tr key={g.phone}>
+                      <td>{g.name}</td>
+                      <td>{maskPhone(g.phone)}</td>
+                      <td>{g.guests_count}</td>
+                      <td>{formatDateTime(g.confirmed_at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
@@ -261,30 +263,32 @@ function AdminDashboard() {
           {reservations.length === 0 ? (
             <div className="empty-state"><strong>Nenhuma reserva ainda</strong></div>
           ) : (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Presente</th><th>Cor</th><th>Reservado por</th><th>Telefone</th><th>Quando</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reservations.map((r) => {
-                  const p = productMap.get(r.product_id)
-                  return (
-                    <tr key={r.product_id}>
-                      <td>
-                        <strong>{p?.name ?? `#${r.product_id}`}</strong>
-                        {p && <small>{p.category}</small>}
-                      </td>
-                      <td>{p?.color ?? '-'}</td>
-                      <td>{r.person_name}</td>
-                      <td>{maskPhone(r.phone)}</td>
-                      <td>{formatDateTime(r.reserved_at)}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <div className="admin-table-scroll">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Presente</th><th>Cor</th><th>Reservado por</th><th>Telefone</th><th>Quando</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reservations.map((r) => {
+                    const p = productMap.get(r.product_id)
+                    return (
+                      <tr key={r.product_id}>
+                        <td>
+                          <strong>{p?.name ?? `#${r.product_id}`}</strong>
+                          {p && <small>{p.category}</small>}
+                        </td>
+                        <td>{p?.color ?? '-'}</td>
+                        <td>{r.person_name}</td>
+                        <td>{maskPhone(r.phone)}</td>
+                        <td>{formatDateTime(r.reserved_at)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}

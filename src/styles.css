@@ -2529,9 +2529,20 @@ h3 { font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 600; }
 .admin-table-head h2 { font-size: 1.4rem; margin: 0; }
 .admin-table-head .btn-outline { height: 38px; padding: 0 16px; font-size: 0.85rem; }
 
+/* Container que permite rolar a tabela na horizontal no mobile,
+   mantendo as colunas legíveis em vez de espremê-las. */
+.admin-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
+}
+
+@media (max-width: 640px) {
+  .admin-table { min-width: 480px; }
 }
 
 .admin-table thead {
