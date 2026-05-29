@@ -31,6 +31,7 @@ export const CATEGORY_ORDER = [
   'Área de Serviço',
   'Quarto e Sala',
   'Banheiro',
+  'Maiores',
   'Outros',
 ]
 

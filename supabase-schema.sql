@@ -197,6 +197,44 @@ from (values
 ) as v(id, code, name, category, color, reference_link, sort_order)
 where not exists (select 1 from public.products);
 
+-- ── Recados (mural de mensagens) ─────────────────────────────
+
+create table if not exists public.messages (
+  id          bigint generated always as identity primary key,
+  name        text not null,
+  message     text not null,
+  phone       text default '',
+  created_at  timestamptz not null default now()
+);
+
+alter table public.messages enable row level security;
+
+drop policy if exists "leitura pública msg" on public.messages;
+drop policy if exists "criação pública msg" on public.messages;
+drop policy if exists "remoção pública msg" on public.messages;
+
+create policy "leitura pública msg"
+  on public.messages for select using (true);
+
+create policy "criação pública msg"
+  on public.messages for insert with check (true);
+
+create policy "remoção pública msg"
+  on public.messages for delete using (true);
+
+-- Realtime nos recados (aparecem na hora pra todos)
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'messages'
+  ) then
+    execute 'alter publication supabase_realtime add table public.messages';
+  end if;
+end $$;
+
 -- =============================================================
--- Pronto. Tabelas criadas em: Table Editor → reservations / guests / event_settings / products
+-- Pronto. Tabelas criadas em: Table Editor → reservations / guests / event_settings / products / messages
 -- =============================================================

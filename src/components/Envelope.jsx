@@ -139,7 +139,7 @@ export default function Envelope({ guest, onSubmit, submitting }) {
         </svg>
 
         <div className="invite-seal" aria-hidden="true">
-          <span dangerouslySetInnerHTML={{ __html: formatMonogram(e.couple_monogram) }} />
+          <span>{e.couple_monogram}</span>
         </div>
       </div>
 
@@ -150,8 +150,4 @@ export default function Envelope({ guest, onSubmit, submitting }) {
       )}
     </div>
   )
-}
-
-function formatMonogram(mono) {
-  return (mono ?? '').replace(/&/g, '&amp;')
 }
