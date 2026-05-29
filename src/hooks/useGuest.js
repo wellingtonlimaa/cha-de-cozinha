@@ -37,16 +37,20 @@ export function useGuest() {
       return { ok: false, reason: 'invalid-input' }
     }
 
-    const { error } = await supabase
-      .from('guests')
-      .upsert(
-        {
-          phone: phoneDigits,
-          name: trimmedName,
-          guests_count: parseInt(guests ?? '1', 10) || 1,
-        },
-        { onConflict: 'phone' },
-      )
+    const row = {
+      phone: phoneDigits,
+      name: trimmedName,
+      guests_count: parseInt(guests ?? '1', 10) || 1,
+    }
+
+    // Insere; se o telefone já confirmou antes (conflito de PK), atualiza.
+    // Evita upsert de propósito: upsert exigiria policy de SELECT pública,
+    // mas a leitura de `guests` é restrita ao admin (privacidade).
+    let { error } = await supabase.from('guests').insert(row)
+    if (error?.code === '23505') {
+      const upd = await supabase.from('guests').update(row).eq('phone', phoneDigits)
+      error = upd.error
+    }
 
     if (error) return { ok: false, reason: 'unknown', error }
 
