@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { useAdminData } from '../hooks/useAdminData'
 import { useProducts } from './ProductsProvider'
 import { useEvent } from './EventProvider'
@@ -10,26 +11,51 @@ import AdminProductsManager from './admin/AdminProductsManager'
 import AdminMessagesManager from './admin/AdminMessagesManager'
 import { useMessages } from './MessagesProvider'
 
-const ADMIN_KEY = 'cha-admin-unlocked'
+/**
+ * Sessão de admin via Supabase Auth.
+ * undefined = ainda carregando | null = deslogado | objeto = logado
+ */
+function useAdminSession() {
+  const [session, setSession] = useState(undefined)
 
-function PasswordGate({ onUnlock }) {
-  const expected = import.meta.env.VITE_ADMIN_PASSWORD
-  const [pwd, setPwd] = useState('')
-  const [error, setError] = useState('')
-
-  function handleSubmit(e) {
-    e.preventDefault()
-    if (!expected) {
-      setError('Painel admin não configurado. Defina VITE_ADMIN_PASSWORD no .env')
-      return
+  useEffect(() => {
+    let active = true
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) setSession(data.session ?? null)
+    })
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s ?? null)
+    })
+    return () => {
+      active = false
+      sub.subscription.unsubscribe()
     }
-    if (pwd === expected) {
-      sessionStorage.setItem(ADMIN_KEY, '1')
-      onUnlock()
-    } else {
-      setError('Senha incorreta')
+  }, [])
+
+  return session
+}
+
+function LoginGate() {
+  const [email, setEmail] = useState('')
+  const [pwd, setPwd]     = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy]   = useState(false)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (busy) return
+    setBusy(true)
+    setError('')
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: pwd,
+    })
+    setBusy(false)
+    if (error) {
+      setError('E-mail ou senha incorretos.')
       setPwd('')
     }
+    // Sucesso: onAuthStateChange atualiza a sessão e libera o painel.
   }
 
   return (
@@ -37,17 +63,28 @@ function PasswordGate({ onUnlock }) {
       <div className="admin-gate-card">
         <p className="kicker">Painel administrativo</p>
         <h1>Acesso restrito</h1>
-        <p className="section-desc">Informe a senha para acessar.</p>
+        <p className="section-desc">Entre com seu e-mail e senha de administrador.</p>
         <form onSubmit={handleSubmit} className="admin-gate-form">
+          <input
+            type="email"
+            placeholder="E-mail"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setError('') }}
+            autoComplete="email"
+            autoFocus
+            required
+          />
           <input
             type="password"
             placeholder="Senha"
             value={pwd}
             onChange={(e) => { setPwd(e.target.value); setError('') }}
-            autoFocus
+            autoComplete="current-password"
             required
           />
-          <button type="submit" className="btn-primary">Entrar</button>
+          <button type="submit" className="btn-primary" disabled={busy}>
+            {busy ? 'Entrando…' : 'Entrar'}
+          </button>
         </form>
         {error && <p className="admin-gate-error">{error}</p>}
         <a href="#/" className="admin-gate-back">← Voltar para o site</a>
@@ -75,11 +112,21 @@ const TABS = [
 ]
 
 export default function AdminPanel() {
-  const isUnlocked = sessionStorage.getItem(ADMIN_KEY) === '1'
-  const [unlocked, setUnlocked] = useState(isUnlocked)
+  const session = useAdminSession()
+
+  if (session === undefined) {
+    return <div className="admin-loading"><span className="spinner" /></div>
+  }
+  if (!session) {
+    return <LoginGate />
+  }
+  return <AdminDashboard />
+}
+
+function AdminDashboard() {
   const [tab, setTab] = useState('guests')
 
-  const { guests, reservations, loading } = useAdminData(unlocked)
+  const { guests, reservations, loading } = useAdminData(true)
   const { products }                      = useProducts()
   const { messages }                      = useMessages()
   const settings                          = useEvent()
@@ -96,9 +143,9 @@ export default function AdminPanel() {
     [guests],
   )
 
-  function logout() {
-    sessionStorage.removeItem(ADMIN_KEY)
-    setUnlocked(false)
+  async function logout() {
+    await supabase.auth.signOut()
+    // onAuthStateChange volta pra tela de login.
   }
 
   function exportGuestsCSV() {
@@ -121,10 +168,6 @@ export default function AdminPanel() {
       { label: 'Reservado em',  get: (r) => formatDateTime(r.reserved_at) },
     ])
     downloadCSV('reservas.csv', csv)
-  }
-
-  if (!unlocked) {
-    return <PasswordGate onUnlock={() => setUnlocked(true)} />
   }
 
   return (

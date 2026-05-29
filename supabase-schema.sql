@@ -62,11 +62,13 @@ create table if not exists public.guests (
 alter table public.guests enable row level security;
 
 drop policy if exists "leitura pública guests"  on public.guests;
+drop policy if exists "select guests admin"     on public.guests;
 drop policy if exists "confirmação pública"     on public.guests;
 drop policy if exists "atualização pública"     on public.guests;
 
-create policy "leitura pública guests"
-  on public.guests for select using (true);
+-- Leitura só admin (esconde a lista de convidados/telefones do público)
+create policy "select guests admin"
+  on public.guests for select to authenticated using (true);
 
 create policy "confirmação pública"
   on public.guests for insert with check (true);
@@ -102,12 +104,15 @@ alter table public.event_settings enable row level security;
 
 drop policy if exists "leitura pública event"     on public.event_settings;
 drop policy if exists "atualização pública event" on public.event_settings;
+drop policy if exists "update event admin"        on public.event_settings;
 
 create policy "leitura pública event"
   on public.event_settings for select using (true);
 
-create policy "atualização pública event"
-  on public.event_settings for update using (true) with check (true);
+-- Edição só admin (protege a chave PIX e os dados do evento)
+create policy "update event admin"
+  on public.event_settings for update
+  to authenticated using (true) with check (true);
 
 -- Realtime no event_settings (UI atualiza quando admin salva)
 do $$
@@ -142,18 +147,22 @@ drop policy if exists "leitura pública products" on public.products;
 drop policy if exists "criação pública products" on public.products;
 drop policy if exists "edição pública products"  on public.products;
 drop policy if exists "remoção pública products" on public.products;
+drop policy if exists "insert products admin"    on public.products;
+drop policy if exists "update products admin"    on public.products;
+drop policy if exists "delete products admin"    on public.products;
 
 create policy "leitura pública products"
   on public.products for select using (true);
 
-create policy "criação pública products"
-  on public.products for insert with check (true);
+-- Criar/editar/remover só admin
+create policy "insert products admin"
+  on public.products for insert to authenticated with check (true);
 
-create policy "edição pública products"
-  on public.products for update using (true) with check (true);
+create policy "update products admin"
+  on public.products for update to authenticated using (true) with check (true);
 
-create policy "remoção pública products"
-  on public.products for delete using (true);
+create policy "delete products admin"
+  on public.products for delete to authenticated using (true);
 
 -- Realtime nos produtos
 do $$
@@ -212,6 +221,7 @@ alter table public.messages enable row level security;
 drop policy if exists "leitura pública msg" on public.messages;
 drop policy if exists "criação pública msg" on public.messages;
 drop policy if exists "remoção pública msg" on public.messages;
+drop policy if exists "delete msg admin"    on public.messages;
 
 create policy "leitura pública msg"
   on public.messages for select using (true);
@@ -219,8 +229,9 @@ create policy "leitura pública msg"
 create policy "criação pública msg"
   on public.messages for insert with check (true);
 
-create policy "remoção pública msg"
-  on public.messages for delete using (true);
+-- Remoção só admin
+create policy "delete msg admin"
+  on public.messages for delete to authenticated using (true);
 
 -- Realtime nos recados (aparecem na hora pra todos)
 do $$
