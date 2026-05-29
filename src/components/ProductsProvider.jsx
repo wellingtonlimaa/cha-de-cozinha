@@ -51,7 +51,10 @@ export function ProductsProvider({ children }) {
           .select('*')
           .order('sort_order', { ascending: true })
         if (cancelled) return
-        if (!error && data && data.length > 0) {
+        // Sem erro = Supabase é a fonte da verdade, mesmo que venha vazio.
+        // (Tabela vazia → site vazio. O fallback local só vale se der erro,
+        //  ex.: tabela inexistente ou sem conexão.)
+        if (!error && data) {
           setProducts(data.map(normalize))
         }
       } catch (err) {
