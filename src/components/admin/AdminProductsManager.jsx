@@ -45,7 +45,7 @@ export default function AdminProductsManager({ onToast }) {
       p.name.toLowerCase().includes(q) ||
       p.code.toLowerCase().includes(q) ||
       p.category.toLowerCase().includes(q) ||
-      p.color.toLowerCase().includes(q),
+      (p.color || '').toLowerCase().includes(q),
     )
   }, [products, filter])
 
@@ -185,7 +185,7 @@ export default function AdminProductsManager({ onToast }) {
               )}
               <img src={image} alt="" className="admin-product-thumb" loading="lazy" />
               <div className="admin-product-info">
-                <span className="admin-product-meta">{p.code} · {p.category} · {p.color}</span>
+                <span className="admin-product-meta">{p.code} · {p.category}{p.color ? ` · ${p.color}` : ''}</span>
                 <strong className="admin-product-name">{p.name}</strong>
                 {p.referenceLink && (
                   <a className="admin-product-link"
@@ -296,10 +296,11 @@ function ProductFormModal({ initial, onClose, onSave }) {
               </label>
               <label className="admin-field">
                 <span className="admin-field-label">Cor sugerida</span>
-                <select value={form.color} onChange={update('color')}>
+                <select value={form.color ?? ''} onChange={update('color')}>
+                  <option value="">— Sem cor (opcional) —</option>
                   {COLORS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <span className="admin-field-hint">Define a cor da ilustração gerada.</span>
+                <span className="admin-field-hint">Opcional. Se vazio, não mostra cor e a ilustração usa um tom neutro.</span>
               </label>
             </div>
 

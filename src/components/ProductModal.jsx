@@ -115,7 +115,7 @@ export default function ProductModal({
               <img src={product.image} alt="" />
               <div>
                 <strong>{product.name}</strong>
-                <span>{product.category} · {product.color}</span>
+                <span>{product.category}{product.color ? ` · ${product.color}` : ''}</span>
               </div>
             </div>
 
@@ -172,7 +172,9 @@ export default function ProductModal({
 
           <p className="modal-category">{product.category}</p>
           <h3 className="modal-name">{product.name}</h3>
-          <p className="modal-color">Cor sugerida: <strong>{product.color}</strong></p>
+          {product.color && (
+            <p className="modal-color">Cor sugerida: <strong>{product.color}</strong></p>
+          )}
 
           <div className="modal-details">
             <div className="detail-row">

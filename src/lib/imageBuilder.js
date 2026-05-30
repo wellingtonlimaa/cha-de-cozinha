@@ -73,5 +73,10 @@ export function buildProductImage(name, color, category) {
   const shape = pickShape(name)
   const shapeMarkup = buildShape(shape, theme.accent, theme.text)
 
-  return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 420'><rect width='600' height='420' rx='40' fill='${bg}'/><circle cx='478' cy='94' r='92' fill='${accent}' fill-opacity='0.12'/><circle cx='104' cy='338' r='120' fill='${accent}' fill-opacity='0.14'/><rect x='38' y='36' width='524' height='348' rx='34' fill='white' fill-opacity='0.18'/><rect x='72' y='66' width='152' height='34' rx='17' fill='${accent}' fill-opacity='0.9'/><text x='92' y='89' font-size='18' font-family='Manrope,Arial' fill='white'>${categoryLabel}</text><rect x='84' y='120' width='344' height='176' rx='28' fill='white' fill-opacity='0.2'/>${shapeMarkup}<text x='78' y='332' font-size='30' font-weight='700' font-family='Cormorant Garamond,serif' fill='${text}'>${title}</text><text x='78' y='366' font-size='21' font-family='Manrope,Arial' fill='${text}'>Cor: ${label}</text></svg>`
+  // Cor é opcional: só mostra a linha "Cor: ..." quando há cor definida.
+  const colorLine = color
+    ? `<text x='78' y='366' font-size='21' font-family='Manrope,Arial' fill='${text}'>Cor: ${label}</text>`
+    : ''
+
+  return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 420'><rect width='600' height='420' rx='40' fill='${bg}'/><circle cx='478' cy='94' r='92' fill='${accent}' fill-opacity='0.12'/><circle cx='104' cy='338' r='120' fill='${accent}' fill-opacity='0.14'/><rect x='38' y='36' width='524' height='348' rx='34' fill='white' fill-opacity='0.18'/><rect x='72' y='66' width='152' height='34' rx='17' fill='${accent}' fill-opacity='0.9'/><text x='92' y='89' font-size='18' font-family='Manrope,Arial' fill='white'>${categoryLabel}</text><rect x='84' y='120' width='344' height='176' rx='28' fill='white' fill-opacity='0.2'/>${shapeMarkup}<text x='78' y='332' font-size='30' font-weight='700' font-family='Cormorant Garamond,serif' fill='${text}'>${title}</text>${colorLine}</svg>`
 }

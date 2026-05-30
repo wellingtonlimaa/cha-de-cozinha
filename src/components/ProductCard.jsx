@@ -28,7 +28,7 @@ export default function ProductCard({ product, busy, onClick, guest }) {
       <div className="product-info">
         <span className="product-cat">{product.category}</span>
         <strong className="product-name">{product.name}</strong>
-        <span className="product-color">{product.color}</span>
+        {product.color && <span className="product-color">{product.color}</span>}
 
         {isMine ? (
           <span className="product-badge mine">⭐ Sua reserva</span>

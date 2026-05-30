@@ -65,7 +65,7 @@ export default function GiftsSection({
         p.name.toLowerCase().includes(q) ||
         p.code.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
-        p.color.toLowerCase().includes(q),
+        (p.color || '').toLowerCase().includes(q),
       )
     }
 

@@ -162,7 +162,7 @@ function AdminDashboard() {
     const csv = toCSV(reservations, [
       { label: 'Presente',      get: (r) => productMap.get(r.product_id)?.name ?? `#${r.product_id}` },
       { label: 'Categoria',     get: (r) => productMap.get(r.product_id)?.category ?? '-' },
-      { label: 'Cor',           get: (r) => productMap.get(r.product_id)?.color ?? '-' },
+      { label: 'Cor',           get: (r) => productMap.get(r.product_id)?.color || '-' },
       { label: 'Reservado por', get: (r) => r.person_name },
       { label: 'Telefone',      get: (r) => maskPhone(r.phone) },
       { label: 'Reservado em',  get: (r) => formatDateTime(r.reserved_at) },
@@ -279,7 +279,7 @@ function AdminDashboard() {
                           <strong>{p?.name ?? `#${r.product_id}`}</strong>
                           {p && <small>{p.category}</small>}
                         </td>
-                        <td>{p?.color ?? '-'}</td>
+                        <td>{p?.color || '-'}</td>
                         <td>{r.person_name}</td>
                         <td>{maskPhone(r.phone)}</td>
                         <td>{formatDateTime(r.reserved_at)}</td>
