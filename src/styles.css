@@ -2680,6 +2680,51 @@ h3 { font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 600; }
   line-height: 1.4;
 }
 
+/* Upload de imagem do produto */
+.admin-image-upload {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-image-preview {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-md);
+  background: var(--surface-2, #f4ece0);
+}
+
+.admin-image-placeholder {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  border: 1px dashed var(--border-md);
+  border-radius: var(--r-md);
+  padding: 6px;
+}
+
+.admin-image-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-image-btn { cursor: pointer; }
+.admin-image-btn.is-busy { opacity: 0.7; pointer-events: none; }
+
+.admin-image-error {
+  font-size: 0.8rem;
+  color: var(--red);
+}
+
 .admin-event-actions {
   display: flex;
   justify-content: flex-end;

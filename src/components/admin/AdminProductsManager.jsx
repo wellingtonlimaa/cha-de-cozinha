@@ -3,6 +3,7 @@ import { CATEGORY_ORDER } from '../../lib/constants'
 import { buildProductImage } from '../../lib/imageBuilder'
 import { useProducts } from '../ProductsProvider'
 import { useReservations } from '../../hooks/useReservations'
+import { supabase } from '../../lib/supabase'
 
 const COLORS = ['Bege', 'Bambu', 'Branco', 'Cinza', 'Inox', 'Marrom', 'Preto', 'Verde oliva']
 
@@ -235,11 +236,42 @@ export default function AdminProductsManager({ onToast }) {
 }
 
 function ProductFormModal({ initial, onClose, onSave }) {
-  const [form, setForm]     = useState(initial)
-  const [saving, setSaving] = useState(false)
+  const [form, setForm]         = useState(initial)
+  const [saving, setSaving]     = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
 
   function update(field) {
     return (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
+  }
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // permite reenviar o mesmo arquivo depois
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Selecione um arquivo de imagem.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Imagem muito grande (máximo 5 MB).')
+      return
+    }
+    setUploadError('')
+    setUploading(true)
+    const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
+    const path = `produtos/${form.id || 'novo'}-${Date.now()}.${ext}`
+    const { error } = await supabase.storage
+      .from('product-images')
+      .upload(path, file, { upsert: true, contentType: file.type })
+    if (error) {
+      setUploading(false)
+      setUploadError('Falha ao enviar. Tente novamente.')
+      return
+    }
+    const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+    setForm((f) => ({ ...f, imageUrl: data.publicUrl }))
+    setUploading(false)
   }
 
   async function handleSubmit(e) {
@@ -304,16 +336,43 @@ function ProductFormModal({ initial, onClose, onSave }) {
               </label>
             </div>
 
-            <label className="admin-field admin-field-wide">
-              <span className="admin-field-label">URL da imagem (opcional)</span>
+            <div className="admin-field admin-field-wide">
+              <span className="admin-field-label">Imagem do produto (opcional)</span>
+              <div className="admin-image-upload">
+                {form.imageUrl
+                  ? <img src={form.imageUrl} alt="" className="admin-image-preview" />
+                  : <div className="admin-image-placeholder">Sem imagem<br />(usa ilustração gerada)</div>}
+                <div className="admin-image-actions">
+                  <label className={`btn-outline btn-sm admin-image-btn${uploading ? ' is-busy' : ''}`}>
+                    {uploading ? 'Enviando…' : '📷 Enviar imagem'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFile}
+                      disabled={uploading}
+                      hidden
+                    />
+                  </label>
+                  {form.imageUrl && !uploading && (
+                    <button
+                      type="button"
+                      className="btn-ghost btn-sm"
+                      onClick={() => setForm((f) => ({ ...f, imageUrl: '' }))}
+                    >
+                      Remover
+                    </button>
+                  )}
+                </div>
+              </div>
+              {uploadError && <span className="admin-image-error">{uploadError}</span>}
               <input
                 type="url"
                 value={form.imageUrl ?? ''}
                 onChange={update('imageUrl')}
-                placeholder="https://..."
+                placeholder="ou cole uma URL: https://..."
               />
-              <span className="admin-field-hint">Se vazio, mostra ilustração gerada com a cor acima.</span>
-            </label>
+              <span className="admin-field-hint">Envie uma foto ou cole uma URL. Se vazio, mostra a ilustração gerada.</span>
+            </div>
 
             <label className="admin-field admin-field-wide">
               <span className="admin-field-label">Link de referência</span>
