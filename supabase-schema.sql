@@ -83,6 +83,7 @@ create table if not exists public.event_settings (
   id                integer primary key default 1 check (id = 1),
   couple_name       text not null default 'Manu & Vitor',
   couple_monogram   text not null default 'M&V',
+  couple_photo_url  text not null default '',
   pix_key           text not null default 'pix-chave@exemplo.com',
   day_label         text not null default 'domingo',
   time_label        text not null default 'às 14h',
@@ -92,6 +93,8 @@ create table if not exists public.event_settings (
   address           text not null default 'R. Amélia, 52 - Pinheirinho, Altiva - SP',
   maps_link         text not null default '',
   message           text not null default 'É com carinho que convidamos você para o nosso chá de cozinha, um momento especial para celebrar o início de uma nova fase.',
+  whatsapp_number   text not null default '',
+  event_datetime    timestamptz,
   updated_at        timestamptz not null default now()
 );
 
