@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { useEvent, useUpdateEvent } from '../EventProvider'
 import { isValidUrl, isoToDatetimeLocal, datetimeLocalToIso } from '../../lib/validation'
 import { HeroView } from '../Hero'
+import { supabase } from '../../lib/supabase'
 
 const FIELDS = [
   { key: 'couple_name',      label: 'Nome do casal',     hint: 'Ex.: Manu & Vitor' },
   { key: 'couple_monogram',  label: 'Monograma',         hint: 'Sigla curta usada na navbar e ícones. Ex.: M&V' },
-  { key: 'couple_photo_url', label: 'Foto do casal (URL)', type: 'url',
-    hint: 'URL pública de uma imagem do casal. Aparece no convite. Deixe vazio para usar o monograma.' },
+  { key: 'couple_photo_url', label: 'Foto do casal', type: 'url', upload: true,
+    hint: 'Envie uma foto ou cole uma URL. Aparece no convite. Deixe vazio para usar o monograma.' },
   { key: 'message',          label: 'Mensagem do convite', textarea: true,
     hint: 'Texto completo que aparece no hero, ao lado do nome.' },
   { key: 'event_datetime',   label: 'Data e hora exata do evento', type: 'datetime-local',
@@ -43,6 +44,8 @@ export default function AdminEventForm({ onToast }) {
   const [saving, setSaving]   = useState(false)
   const [dirty, setDirty]     = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [uploading, setUploading]     = useState(false)
+  const [uploadError, setUploadError] = useState('')
 
   useEffect(() => {
     if (!dirty) setForm(settings)
@@ -51,6 +54,35 @@ export default function AdminEventForm({ onToast }) {
   function update(key, value) {
     setForm((f) => ({ ...f, [key]: value }))
     setDirty(true)
+  }
+
+  async function handlePhotoFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Selecione um arquivo de imagem.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Imagem muito grande (máximo 5 MB).')
+      return
+    }
+    setUploadError('')
+    setUploading(true)
+    const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
+    const path = `casal/foto-${Date.now()}.${ext}`
+    const { error } = await supabase.storage
+      .from('product-images')
+      .upload(path, file, { upsert: true, contentType: file.type })
+    if (error) {
+      setUploading(false)
+      setUploadError('Falha ao enviar. Tente novamente.')
+      return
+    }
+    const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+    update('couple_photo_url', data.publicUrl)
+    setUploading(false)
   }
 
   async function handleSubmit(e) {
@@ -101,6 +133,49 @@ export default function AdminEventForm({ onToast }) {
             function onChange(e) {
               const v = isDateTime ? datetimeLocalToIso(e.target.value) : e.target.value
               update(f.key, v)
+            }
+
+            if (f.upload) {
+              return (
+                <div key={f.key} className="admin-field admin-field-wide">
+                  <span className="admin-field-label">{f.label}</span>
+                  <div className="admin-image-upload">
+                    {form[f.key]
+                      ? <img src={form[f.key]} alt="" className="admin-image-preview" />
+                      : <div className="admin-image-placeholder">Sem foto<br />(usa o monograma)</div>}
+                    <div className="admin-image-actions">
+                      <label className={`btn-outline btn-sm admin-image-btn${uploading ? ' is-busy' : ''}`}>
+                        {uploading ? 'Enviando…' : '📷 Enviar foto'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoFile}
+                          disabled={uploading}
+                          hidden
+                        />
+                      </label>
+                      {form[f.key] && !uploading && (
+                        <button
+                          type="button"
+                          className="btn-ghost btn-sm"
+                          onClick={() => update(f.key, '')}
+                        >
+                          Remover
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {uploadError && <span className="admin-image-error">{uploadError}</span>}
+                  <input
+                    type="url"
+                    value={value}
+                    onChange={onChange}
+                    placeholder="ou cole uma URL: https://..."
+                  />
+                  <UrlValidationIndicator value={form[f.key]} />
+                  {f.hint && <span className="admin-field-hint">{f.hint}</span>}
+                </div>
+              )
             }
 
             return (
